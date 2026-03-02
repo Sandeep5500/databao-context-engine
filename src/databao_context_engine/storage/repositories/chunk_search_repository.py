@@ -85,7 +85,7 @@ class ChunkSearchRepository:
         self,
         *,
         table_name: str,
-        retrieve_vec: Sequence[float],
+        search_vec: Sequence[float],
         dimension: int,
         limit: int,
         datasource_ids: list[DatasourceId] | None = None,
@@ -93,7 +93,7 @@ class ChunkSearchRepository:
         """Read only similarity search on a specific embedding shard table."""
         vector_candidates = self._get_vector_candidates(
             table_name=table_name,
-            retrieve_vec=retrieve_vec,
+            search_vec=search_vec,
             dimension=dimension,
             limit=limit,
             datasource_ids=datasource_ids,
@@ -115,13 +115,13 @@ class ChunkSearchRepository:
         self,
         *,
         table_name: str,
-        retrieve_vec: Sequence[float],
+        search_vec: Sequence[float],
         dimension: int,
         limit: int,
         datasource_ids: list[DatasourceId] | None = None,
     ) -> list[VectorSearchCandidate]:
         """Read only vector candidates on a specific embedding shard table."""
-        params: list[Any] = [list(retrieve_vec), self._DEFAULT_DISTANCE_THRESHOLD, limit]
+        params: list[Any] = [list(search_vec), self._DEFAULT_DISTANCE_THRESHOLD, limit]
         if datasource_ids:
             params.append([str(datasource_id) for datasource_id in datasource_ids])
 
@@ -175,8 +175,8 @@ class ChunkSearchRepository:
         self,
         *,
         table_name: str,
-        retrieve_vec: Sequence[float],
-        query_text: str,
+        search_vec: Sequence[float],
+        search_text: str,
         dimension: int,
         limit: int,
         datasource_ids: list[DatasourceId] | None = None,
@@ -189,14 +189,14 @@ class ChunkSearchRepository:
         candidate_limit = max(limit, limit * self._DEFAULT_CANDIDATE_MULTIPLIER)
         vector_candidates = self._get_vector_candidates(
             table_name=table_name,
-            retrieve_vec=retrieve_vec,
+            search_vec=search_vec,
             dimension=dimension,
             limit=candidate_limit,
             datasource_ids=datasource_ids,
         )
 
         bm25_candidates = self._get_bm25_candidates(
-            query_text=query_text,
+            query_text=search_text,
             limit=candidate_limit,
             datasource_ids=datasource_ids,
         )

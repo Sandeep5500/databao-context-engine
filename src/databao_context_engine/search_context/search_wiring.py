@@ -12,8 +12,7 @@ from databao_context_engine.llm.factory import (
 )
 from databao_context_engine.llm.prompts.provider import PromptProvider
 from databao_context_engine.project.layout import ProjectLayout
-from databao_context_engine.retrieve_embeddings.retrieve_runner import retrieve
-from databao_context_engine.retrieve_embeddings.retrieve_service import RAG_MODE, ContextSearchMode, RetrieveService
+from databao_context_engine.search_context.search_service import RAG_MODE, ContextSearchMode, SearchContextService
 from databao_context_engine.services.factories import create_shard_resolver
 from databao_context_engine.storage.connection import open_duckdb_connection
 from databao_context_engine.storage.repositories.chunk_search_repository import SearchResult
@@ -23,17 +22,17 @@ from databao_context_engine.system.properties import get_db_path
 
 @perf.perf_run(
     operation="search_context",
-    attrs=lambda *, retrieve_text, limit, datasource_ids, context_search_mode, **_: {
-        "search_text_length": len(retrieve_text),
+    attrs=lambda *, search_text, limit, datasource_ids, context_search_mode, **_: {
+        "search_text_length": len(search_text),
         "limit": limit,
         "datasources_number": len(datasource_ids) if datasource_ids else -1,
         "context_search_mode": context_search_mode.value,
     },
 )
 @perf.perf_span("search_context.total")
-def retrieve_embeddings(
+def search_context(
     project_layout: ProjectLayout,
-    retrieve_text: str,
+    search_text: str,
     limit: int | None,
     datasource_ids: list[DatasourceId] | None,
     context_search_mode: ContextSearchMode,
@@ -48,12 +47,11 @@ def retrieve_embeddings(
         rag_mode = _get_rag_mode()
         prompt_provider = create_ollama_prompt_provider(ollama_service) if rag_mode == RAG_MODE.REWRITE_QUERY else None
 
-        retrieve_service = _create_retrieve_service(
+        search_context_service = _create_search_context_service(
             conn, embedding_provider=embedding_provider, prompt_provider=prompt_provider
         )
-        return retrieve(
-            retrieve_service=retrieve_service,
-            text=retrieve_text,
+        return search_context_service.search(
+            search_text=search_text,
             limit=limit,
             datasource_ids=datasource_ids,
             rag_mode=rag_mode,
@@ -72,16 +70,16 @@ def _get_rag_mode() -> RAG_MODE:
     return RAG_MODE.RAW_QUERY
 
 
-def _create_retrieve_service(
+def _create_search_context_service(
     conn: DuckDBPyConnection,
     *,
     embedding_provider: EmbeddingProvider,
     prompt_provider: PromptProvider | None,
-) -> RetrieveService:
+) -> SearchContextService:
     chunk_search_repo = create_chunk_search_repository(conn)
     shard_resolver = create_shard_resolver(conn)
 
-    return RetrieveService(
+    return SearchContextService(
         chunk_search_repo=chunk_search_repo,
         shard_resolver=shard_resolver,
         embedding_provider=embedding_provider,

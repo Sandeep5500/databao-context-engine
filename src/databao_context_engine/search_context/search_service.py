@@ -27,7 +27,7 @@ class ContextSearchMode(Enum):
     VECTOR_SEARCH = "VECTOR_SEARCH"
 
 
-class RetrieveService:
+class SearchContextService:
     def __init__(
         self,
         *,
@@ -47,10 +47,10 @@ class RetrieveService:
             "rag_mode": rag_mode.value,
         },
     )
-    def retrieve(
+    def search(
         self,
         *,
-        text: str,
+        search_text: str,
         limit: int | None = None,
         datasource_ids: list[DatasourceId] | None = None,
         rag_mode: RAG_MODE,
@@ -59,15 +59,15 @@ class RetrieveService:
         if limit is None:
             limit = 10
 
-        search_results = self._do_retrieve(
-            text=text,
+        search_results = self._do_search(
+            text=search_text,
             limit=limit,
             datasource_ids=datasource_ids,
             rag_mode=rag_mode,
             context_search_mode=context_search_mode,
         )
 
-        logger.debug(f"Retrieved {len(search_results)} display texts")
+        logger.debug(f"Found {len(search_results)} search results")
 
         if logger.isEnabledFor(logging.DEBUG):
             if search_results:
@@ -82,7 +82,7 @@ class RetrieveService:
 
         return search_results
 
-    def _do_retrieve(
+    def _do_search(
         self,
         *,
         text: str,
@@ -107,7 +107,7 @@ class RetrieveService:
                 task_description = "Generate an embedding aware of the named entities such as to be useful for a semantic search on database table and column names"
                 embeddable_query = f"Instruct: {task_description}\nQuery:{text}"
             case RAG_MODE.REWRITE_QUERY:
-                embeddable_query = self._rewrite_retrieve_query(text)
+                embeddable_query = self._rewrite_search_query(text)
             case _:
                 embeddable_query = text
 
@@ -115,13 +115,13 @@ class RetrieveService:
             "search_context.embed_search_text",
             attrs={"model_id": self._provider.model_id, "model_dim": self._provider.dim},
         ):
-            retrieve_vec: Sequence[float] = self._provider.embed(embeddable_query)
+            search_vec: Sequence[float] = self._provider.embed(embeddable_query)
 
         match context_search_mode:
             case ContextSearchMode.VECTOR_SEARCH:
                 return self._chunk_search_repo.search_chunks_by_vector_similarity(
                     table_name=table_name,
-                    retrieve_vec=retrieve_vec,
+                    search_vec=search_vec,
                     dimension=dimension,
                     limit=limit,
                     datasource_ids=datasource_ids,
@@ -129,15 +129,15 @@ class RetrieveService:
             case ContextSearchMode.HYBRID_SEARCH:
                 return self._chunk_search_repo.search_chunks_with_hybrid_search(
                     table_name=table_name,
-                    retrieve_vec=retrieve_vec,
-                    query_text=text,
+                    search_vec=search_vec,
+                    search_text=text,
                     dimension=dimension,
                     limit=limit,
                     datasource_ids=datasource_ids,
                 )
 
     @perf.perf_span("search_context.rewrite_query")
-    def _rewrite_retrieve_query(self, text: str) -> str:
+    def _rewrite_search_query(self, text: str) -> str:
         if not self._prompt_provider:
             raise ValueError(f"Prompt provider should never be None when rag_mode is {RAG_MODE.REWRITE_QUERY.value}")
 

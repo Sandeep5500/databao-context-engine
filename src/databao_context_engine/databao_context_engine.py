@@ -16,11 +16,11 @@ from databao_context_engine.pluginlib.build_plugin import DatasourceType
 from databao_context_engine.pluginlib.sql.sql_types import SqlExecutionResult
 from databao_context_engine.plugins.plugin_loader import DatabaoContextPluginLoader
 from databao_context_engine.project.layout import ProjectLayout, ensure_project_dir
-from databao_context_engine.retrieve_embeddings import retrieve_embeddings
-from databao_context_engine.retrieve_embeddings.retrieve_service import ContextSearchMode
+from databao_context_engine.search_context import search_context as search_context_internal
+from databao_context_engine.search_context.search_service import ContextSearchMode
 
 
-@dataclass
+@dataclass(frozen=True)
 class ContextSearchResult:
     """The result of a search in the domain's contexts.
 
@@ -128,9 +128,9 @@ class DatabaoContextEngine:
             context_search_mode = ContextSearchMode.HYBRID_SEARCH
 
         project_config = self._project_layout.read_config_file()
-        results = retrieve_embeddings(
+        results = search_context_internal(
             project_layout=self._project_layout,
-            retrieve_text=search_text,
+            search_text=search_text,
             limit=limit,
             datasource_ids=datasource_ids,
             context_search_mode=context_search_mode,

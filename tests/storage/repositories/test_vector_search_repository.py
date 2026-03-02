@@ -34,7 +34,7 @@ def test_similarity_returns_display_and_distance(
     retrieve_vec = [1.0] + [0.0] * (DIM - 1)
     results = repo.search_chunks_by_vector_similarity(
         table_name=table_name,
-        retrieve_vec=retrieve_vec,
+        search_vec=retrieve_vec,
         dimension=DIM,
         limit=10,
     )
@@ -71,7 +71,7 @@ def test_limit_is_applied(
 
     results = repo.search_chunks_by_vector_similarity(
         table_name=table_name,
-        retrieve_vec=retrieve_vec,
+        search_vec=retrieve_vec,
         dimension=DIM,
         limit=2,
     )
@@ -127,7 +127,7 @@ def test_search_over_multiple_dataources(
 
     results = repo.search_chunks_by_vector_similarity(
         table_name=table_name,
-        retrieve_vec=retrieve_vec,
+        search_vec=retrieve_vec,
         dimension=DIM,
         limit=10,
     )
@@ -207,7 +207,7 @@ def test_search_over_multiple_dataources_with_datasource_filter(
 
     results = repo.search_chunks_by_vector_similarity(
         table_name=table_name,
-        retrieve_vec=retrieve_vec,
+        search_vec=retrieve_vec,
         dimension=DIM,
         limit=10,
         datasource_ids=[
