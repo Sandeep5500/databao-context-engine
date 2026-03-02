@@ -43,6 +43,8 @@ jobs:
       TMPDIR: /mnt/tmp
       TEMP: /mnt/tmp
       TMP: /mnt/tmp
+      BIGQUERY_TEST_PROJECT: ${{ secrets.BIGQUERY_TEST_PROJECT }}
+      BIGQUERY_TEST_DATASET: ${{ secrets.BIGQUERY_TEST_DATASET }}
 
     permissions:
       contents: read
@@ -80,7 +82,7 @@ jobs:
           JSON
           echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" >> "$GITHUB_ENV"
 
-      - name: Run tests
+      - name: Run tests with all-extras
         run: uv run pytest -v
 
       - name: Cleanup Docker (post)
