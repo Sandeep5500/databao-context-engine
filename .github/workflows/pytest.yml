@@ -43,8 +43,8 @@ jobs:
       TMPDIR: /mnt/tmp
       TEMP: /mnt/tmp
       TMP: /mnt/tmp
-      BIGQUERY_TEST_PROJECT: ${{ secrets.BIGQUERY_TEST_PROJECT }}
-      BIGQUERY_TEST_DATASET: ${{ secrets.BIGQUERY_TEST_DATASET }}
+      BIGQUERY_TEST_PROJECT: ${{ vars.BIGQUERY_TEST_PROJECT }}
+      BIGQUERY_TEST_DATASET: ${{ vars.BIGQUERY_TEST_DATASET }}
 
     permissions:
       contents: read
