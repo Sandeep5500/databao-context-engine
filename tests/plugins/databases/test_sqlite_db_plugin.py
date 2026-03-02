@@ -5,6 +5,7 @@ from typing import Any, Mapping, Sequence
 
 import pytest
 
+from databao_context_engine import SQLiteConfigFile, SQLiteConnectionConfig
 from databao_context_engine.pluginlib.build_plugin import DatasourceType
 from databao_context_engine.pluginlib.plugin_utils import execute_datasource_plugin
 from databao_context_engine.plugins.databases.databases_types import DatabaseIntrospectionResult
@@ -149,6 +150,27 @@ def _create_config_file_from_sqlite(sqlite_path: Path, datasource_name: str | No
         "name": datasource_name,
         "connection": dict(database_path=str(sqlite_path)),
     }
+
+
+def test_sqlite_check_connection__fails_if_path_is_incorrect(tmp_path: Path):
+    sqlite_file = tmp_path / "missing_file.sqlite"
+
+    plugin = SQLiteDbPlugin()
+    config = SQLiteConfigFile(name="file_name", connection=SQLiteConnectionConfig(database_path=str(sqlite_file)))
+
+    with pytest.raises(ConnectionError):
+        plugin.check_connection("sqlite", config)
+
+
+def test_sqlite_check_connection__fails_if_path_is_not_a_sqlite(tmp_path: Path):
+    sqlite_file = tmp_path / "wrong_file.sqlite"
+    sqlite_file.write_text("Not a SQLite file", encoding="utf-8")
+
+    plugin = SQLiteDbPlugin()
+    config = SQLiteConfigFile(name="file_name", connection=SQLiteConnectionConfig(database_path=str(sqlite_file)))
+
+    with pytest.raises(sqlite3.DatabaseError):
+        plugin.check_connection("sqlite", config)
 
 
 def test_sqlite_plugin_introspection_demo_schema(sqlite_with_demo_schema: Path):

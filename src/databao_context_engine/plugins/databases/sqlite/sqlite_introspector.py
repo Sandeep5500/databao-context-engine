@@ -1,4 +1,5 @@
 import sqlite3
+from pathlib import Path
 
 from databao_context_engine.plugins.databases.base_introspector import BaseIntrospector, SQLQuery
 from databao_context_engine.plugins.databases.databases_types import DatabaseSchema
@@ -12,7 +13,10 @@ class SQLiteIntrospector(BaseIntrospector[SQLiteConfigFile]):
     supports_catalogs = False
 
     def _connect(self, file_config: SQLiteConfigFile, *, catalog: str | None = None):
-        database_path = str(file_config.connection.database_path)
+        database_path = Path(file_config.connection.database_path)
+        if not database_path.is_file():
+            raise ConnectionError(f"No SQLite database was found at path {database_path.resolve()}")
+
         conn = sqlite3.connect(database_path)
         conn.text_factory = str
         return conn
