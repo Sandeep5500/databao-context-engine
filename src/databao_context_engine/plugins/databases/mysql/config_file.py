@@ -11,7 +11,7 @@ class MySQLConnectionProperties(BaseModel):
     port: int | None = None
     database: str | None = None
     user: str | None = None
-    password: Annotated[str, ConfigPropertyAnnotation(secret=True)]
+    password: Annotated[str | None, ConfigPropertyAnnotation(secret=True)] = None
     additional_properties: dict[str, Any] = {}
 
     def to_pymysql_kwargs(self) -> dict[str, Any]:
