@@ -30,8 +30,8 @@ class BuildService:
         self._project_layout = project_layout
         self._chunk_embedding_service = chunk_embedding_service
 
-    def process_prepared_source(
-        self, *, prepared_source: PreparedDatasource, plugin: BuildPlugin, generate_embeddings: bool = True
+    def build_context(
+        self, *, prepared_source: PreparedDatasource, plugin: BuildPlugin, should_index: bool = True
     ) -> BuiltDatasourceContext:
         """Process a single source to build its context.
 
@@ -44,7 +44,7 @@ class BuildService:
         """
         result = self._execute_plugin(prepared_source=prepared_source, plugin=plugin)
 
-        if not generate_embeddings:
+        if not should_index:
             return result
 
         self._index_context(built_context=result, plugin=plugin)

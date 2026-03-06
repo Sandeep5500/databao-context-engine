@@ -30,7 +30,7 @@ def build_all_datasources(
     project_layout: ProjectLayout,
     plugin_loader: DatabaoContextPluginLoader,
     chunk_embedding_mode: ChunkEmbeddingMode,
-    generate_embeddings: bool = True,
+    should_index: bool = True,
 ) -> list[BuildDatasourceResult]:
     """Build the context for all datasources in the project.
 
@@ -72,7 +72,7 @@ def build_all_datasources(
             project_layout=project_layout,
             plugin_loader=plugin_loader,
             build_service=build_service,
-            generate_embeddings=generate_embeddings,
+            should_index=should_index,
         )
 
 
