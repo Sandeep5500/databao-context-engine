@@ -72,6 +72,7 @@ def test_process_prepared_source_happy_path_creates_row_and_embeds(svc, chunk_em
         result=result,
         datasource_id="files/two.md",
         full_type="files/md",
+        override=False,
     )
     assert out is result
 
