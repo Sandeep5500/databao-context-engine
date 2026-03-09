@@ -3,9 +3,8 @@ import logging
 import databao_context_engine.perf.core as perf
 from databao_context_engine.build_sources.build_service import BuildService
 from databao_context_engine.build_sources.export_results import (
-    append_result_to_all_results,
+    delete_all_results_file,
     export_build_result,
-    reset_all_results,
 )
 from databao_context_engine.build_sources.types import (
     BuildDatasourceResult,
@@ -57,7 +56,7 @@ def build(
     results: list[BuildDatasourceResult] = []
     failed = 0
     skipped = 0
-    reset_all_results(project_layout.output_dir)
+    delete_all_results_file(project_layout)
     for datasource_id in datasource_ids:
         try:
             result = _build_one_datasource(
@@ -129,8 +128,6 @@ def _build_one_datasource(
     context_file_path = export_build_result(output_dir, result)
 
     perf.set_attribute("context_size_bytes", context_file_path.stat().st_size)
-
-    append_result_to_all_results(output_dir, result)
 
     return BuildDatasourceResult(
         datasource_id=datasource_id,

@@ -3,7 +3,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import yaml
 
 from databao_context_engine import DatabaoContextPluginLoader, DatasourceContext, DatasourceId
 from databao_context_engine.build_sources import build_runner
@@ -37,17 +36,6 @@ def stub_prepare(mocker):
         return mocker.patch.object(build_runner, "prepare_source", side_effect=side_effect)
 
     return _stub
-
-
-def _read_all_results(path: Path):
-    p = path / "all_results.yaml"
-    if not p.exists():
-        return []
-    with p.open("r", encoding="utf-8") as fh:
-        try:
-            return list(yaml.safe_load_all(fh))
-        except Exception:
-            return [yaml.safe_load(fh)]
 
 
 def test_build_returns_early_when_no_sources(stub_sources, mock_build_service, project_layout):
