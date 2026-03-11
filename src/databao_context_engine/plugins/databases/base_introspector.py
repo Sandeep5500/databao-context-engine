@@ -8,6 +8,7 @@ from typing import Any, Generic, Mapping, Protocol, Sequence, TypeVar, Union
 import databao_context_engine.perf.core as perf
 from databao_context_engine.pluginlib.sql.sql_types import SqlExecutionResult
 from databao_context_engine.plugins.databases.databases_types import (
+    CardinalityBucket,
     DatabaseCatalog,
     DatabaseIntrospectionResult,
     DatabaseSchema,
@@ -30,6 +31,7 @@ class BaseIntrospector(Generic[T], ABC):
     supports_catalogs: bool = True
     _IGNORED_SCHEMAS: set[str] = {"information_schema"}
     _SAMPLE_LIMIT: int = 5
+    _LOW_CARDINALITY_THRESHOLD = 20
 
     def check_connection(self, file_config: T) -> None:
         with self._connect(file_config) as connection:
@@ -133,7 +135,7 @@ class BaseIntrospector(Generic[T], ABC):
 
         columns = table_columns + view_columns
         # TODO collecting samples and table/column stats should be separate steps, it's a temporary fix
-        table_stats, column_stats = self.collect_stats(connection, schemas, relations, columns)
+        table_stats, column_stats = self.collect_stats(connection, catalog, schemas, relations, columns)
 
         return IntrospectionModelBuilder.build_schemas_from_components(
             schemas=schemas,
@@ -246,6 +248,7 @@ class BaseIntrospector(Generic[T], ABC):
     def collect_stats(
         self,
         connection,
+        catalog: str,
         schemas: list[str],
         relations: list[dict],
         columns: list[dict],
@@ -264,6 +267,18 @@ class BaseIntrospector(Generic[T], ABC):
                 logger.warning("Failed to fetch samples for %s.%s (catalog=%s): %s", schema, table, catalog, e)
                 samples = []
         return samples
+
+    @staticmethod
+    def _compute_cardinality_stats(
+        distinct_count: int | None,
+    ) -> tuple[CardinalityBucket, int | None]:
+        cardinality_kind = CardinalityBucket.from_distinct_count(distinct_count)
+        low_cardinality_distinct_count = (
+            distinct_count
+            if distinct_count is not None and distinct_count < BaseIntrospector._LOW_CARDINALITY_THRESHOLD
+            else None
+        )
+        return cardinality_kind, low_cardinality_distinct_count
 
     @abstractmethod
     def _connect(self, file_config: T, *, catalog: str | None = None) -> Any:
