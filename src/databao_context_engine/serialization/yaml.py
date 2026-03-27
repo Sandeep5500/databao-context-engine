@@ -28,6 +28,22 @@ def to_yaml_string(data: Any) -> str:
 
 
 def to_plain_python(value: Any, exclude_none: bool = True) -> Any:
+    """Convert any object into a "dictionary representation" of the object.
+
+    All complex objects will be recursively converted to a [attribute_name, attribute_value] dict.
+
+    All values are converted to dicts, list or built-in primitives.
+    With two exceptions:
+     - objects that only have "slots" fields are returned as-is (e.g. datetime or UUID)
+     - objects with no public fields: the string representation of the object is returned
+
+    Args:
+        value: The object to be converted
+        exclude_none: Whether to exclude fields with None values from the result
+
+    Returns:
+        A "dictionary representation" of the object.
+    """
     # Special case: BaseModel can directly use Pydantic's "serialisation"
     if isinstance(value, BaseModel):
         return value.model_dump(exclude_none=exclude_none)
