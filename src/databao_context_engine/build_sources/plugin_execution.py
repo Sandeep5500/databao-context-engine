@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Generic, TypeVar, cast
 
 from databao_context_engine.datasources.types import PreparedConfig, PreparedDatasource
 from databao_context_engine.pluginlib.build_plugin import (
@@ -10,9 +10,11 @@ from databao_context_engine.pluginlib.build_plugin import (
 from databao_context_engine.pluginlib.plugin_utils import execute_datasource_plugin, execute_file_plugin
 from databao_context_engine.project.layout import ProjectLayout
 
+ContextT = TypeVar("ContextT")
+
 
 @dataclass()
-class BuiltDatasourceContext:
+class BuiltDatasourceContext(Generic[ContextT]):
     """Dataclass defining the result of building a datasource's context."""
 
     datasource_id: str
@@ -25,7 +27,7 @@ class BuiltDatasourceContext:
     The type of the built data source
     """
 
-    context: Any
+    context: ContextT
     """
     A dictionary containing the actual context generated for the data source.
     This dictionary should be serializable in YAML format.

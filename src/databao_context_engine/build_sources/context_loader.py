@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import replace
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 
 from databao_context_engine.build_sources.plugin_execution import BuiltDatasourceContext
 from databao_context_engine.datasources.datasource_context import (
@@ -45,14 +44,8 @@ def deserialize_built_context(
 ) -> BuiltDatasourceContext:
     """Parse a datasource output YAML payload and type the embedded context."""
     raw_context = yaml.safe_load(context.context)
-    built = TypeAdapter(BuiltDatasourceContext).validate_python(raw_context)
 
-    if isinstance(context_type, type) and issubclass(context_type, BaseModel):
-        typed_context: Any = context_type.model_validate(built.context)
-    else:
-        typed_context = TypeAdapter(context_type).validate_python(built.context)
-
-    return replace(built, context=typed_context)
+    return TypeAdapter(BuiltDatasourceContext[context_type]).validate_python(raw_context)  # type: ignore[valid-type]
 
 
 def _load_typed_built_context(
