@@ -15,7 +15,6 @@ class ClickUserInputCallback(UserInputCallback):
         default_value: Any | None = None,
         is_secret: bool = False,
     ) -> Any:
-        show_default: bool = default_value is not None and default_value != ""
         final_type = click.Choice(type.choices) if isinstance(type, Choice) else str
 
         # click goes infinite loop if user gives emptry string as an input AND default_value is None
@@ -30,6 +29,8 @@ class ClickUserInputCallback(UserInputCallback):
         #       value = default
         #       break
         default_value = str(default_value) if default_value else "" if final_type is str else None
+        show_default: bool = default_value is not None and default_value != ""
+
         prompt_text = f"{property_key}?{' (Optional)' if not required else ''}"
         return click.prompt(
             text=prompt_text, default=default_value, hide_input=is_secret, type=final_type, show_default=show_default
