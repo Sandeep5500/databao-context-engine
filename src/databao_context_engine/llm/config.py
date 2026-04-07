@@ -18,7 +18,7 @@ class OllamaConfig:
     host: str = "127.0.0.1"
     port: int = 11434
 
-    timeout: float = 30.0
+    timeout: float = 120.0
     headers: Optional[dict[str, str]] = None
 
     bin_path: str = "ollama"
